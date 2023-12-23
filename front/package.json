@@ -1,0 +1,21 @@
+{
+  "name": "html",
+  "version": "1.0.0",
+  "description": "",
+  "source": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "parcel build",
+    "start": "parcel"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "axios": "^1.6.2",
+    "buffer": "^6.0.3",
+    "parcel": "^2.10.3"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.3"
+  }
+}
