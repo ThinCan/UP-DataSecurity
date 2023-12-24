@@ -15,12 +15,19 @@ Alpine.store("btn_loginform_submit", (email, password) => {
         axios.get("https://localhost/api/jwt", {
         withCredentials: true
         }).then(e => {
-            console.log(e.data)
+
         })
     })
 })
 Alpine.store("btn_test", () => {
     axios.get("https://localhost/api/jwt", {
+        withCredentials: true
+    }).then(e => {
+        console.log(e.data)
+    })
+})
+Alpine.store("btn_logout", () => {
+    axios.get("https://localhost/api/logout", {
         withCredentials: true
     }).then(e => {
         console.log(e.data)

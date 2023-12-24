@@ -1,3 +1,4 @@
-node_modules/*
+front/node_modules/*
 .git/*
-
+front/.parcel-cache/*
+/front/dist/*
