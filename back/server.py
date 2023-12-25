@@ -1,6 +1,6 @@
-from flask import Flask, render_template, url_for
-from flask_cors import CORS, cross_origin
-from flask import request, jsonify
+from flask import Flask 
+from flask_cors import CORS
+from flask import request, jsonify, redirect
 import sqlite3
 from waitress import serve
 from flask_jwt_extended import get_jwt_identity, jwt_required, JWTManager, create_access_token, set_access_cookies, get_jwt
@@ -8,6 +8,7 @@ from datetime import timedelta
 
 # config =  json.load(open("./config.json", "r"))
 app = Flask(__name__)
+CORS(app, supports_credentials=True, origins=["http://localhost*", "https://localhost*"])
 
 app.config["JWT_SECRET_KEY"] = "secret1"
 app.config["JWT_COOKIE_SECURE"] = True
@@ -19,6 +20,12 @@ dbcur = db.cursor()
 dbcur.execute("""
 CREATE TABLE IF NOT EXISTS revoked_jwt(jti)  
 """)
+dbcur.execute("""
+CREATE TABLE IF NOT EXISTS users(
+    email TEXT, 
+    password TEXT
+)  
+""")
 
 @jwt.token_in_blocklist_loader
 def abc(jwt_header, jwt_payload):
@@ -27,11 +34,10 @@ def abc(jwt_header, jwt_payload):
     print(res)
     return res is not None
 
-CORS(app, supports_credentials=True)
 @app.get("/api/<id>")
 def index(id):
-    # print(id)
-    return id
+    print(id)
+    return id, 200
 
 @app.post("/api/login")
 def login():
@@ -61,6 +67,15 @@ def protected():
     response = jsonify(logged_in_as=cu)
 
     return response, 200
+
+@app.post("/api/register/validate")
+def register_validate():
+    json = request.get_json()
+    result = dbcur.execute("SELECT COUNT(*) FROM users WHERE email == ?", (json["email"],)).fetchone()[0]
+    if(result != 0):
+        return {"message": "Incorrect email or password.", "result": False}, 401
+    return {"message": "Everything's good.", "result": True}, 200
+
 
 if __name__ == "__main__":
     serve(app, host="0.0.0.0", port=8080, url_scheme="https")

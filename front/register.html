@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        .green {
+            color: rgb(112, 187, 0)
+        }
+        .red {
+            color: rgb(202, 64, 64);
+        }
+    </style>
+</head>
+<body>
+    <script type="module" src="./index.js"></script>
+    <form method="post" x-data="{email: '', password: '', repeatpassword: ''}">
+        <h2>Please, register an account:</h2>
+        <div>
+            <label>Email: </label>
+            <input type="email" pattern=".+@.+\..+" x-model="email">
+        </div>
+        <div>
+            <label>Password: </label>
+            <input type="password" x-model="password">
+        </div>
+        <div>
+            <label>Repeat password: </label>
+            <input type="password" x-model="repeatpassword">
+        </div>
+        <button type="button" @click="$store.registerform_submit(email, password, repeatpassword)">Register</button>
+        <div x-text="$store.registerform_validation.message" x-effect="$store.registerform_validate(email, password, repeatpassword)" :class="$store.registerform_validation.result ? 'green' : 'red' "> </div>
+    </form>
+
+</body>
+</html>

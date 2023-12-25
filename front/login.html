@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login page</title>
+</head>
+<body>
+    <script src="./index.js" type="module"></script>
+    <div>
+        <form method="post" x-data="{email: '', password: ''}">
+            <h2>Please, log-in:</h2>
+            <div>
+                <label>Email: </label>
+                <input type="email" pattern=".+@.+\..+" x-model="email">
+            </div>
+            <div>
+                <label>Password: </label>
+                <input type="password" x-model="password">
+            </div>
+            <button type="button" @click="$store.btn_loginform_submit(email, password)">Login</button>
+        </form>
+    </div> 
+</body>
+</html>
