@@ -1,52 +1,52 @@
 import secrets
 import bcrypt
-plain = "abcdefghij"
-#        0123456789
-N = 4
-k = len(plain)
+password_plain = "karol"
+password_bytes = "karol".encode(encoding="utf-8")
 
-R = []
-for i in range(N-1):
-    R.append(secrets.randbits(32))
-y = []
-K = secrets.randbits(32)
-salt = bcrypt.gensalt(12)
-hashh =bcrypt.hashpw(K.to_bytes(32), salt) 
-K = int.from_bytes(hashh)
-print(len(hashh))
-
-for i in range(k):
-    num = K
-    for j in range(len(R)):
-        num += R[j] * i
-    y.append(num)
-
-assert(len(y) == len(plain))
-
-s = []
-ycompare = []
-for i in range(k):
-    s.append(y[i] - ord(plain[i]))
-s.append(K)
+enc = bcrypt.hashpw(password_plain.encode(), bcrypt.gensalt())
+print(enc)
 
 
-ip = [0, 2, 5, 7]
-pp = "acfh"
-yp = []
-for i in range(N):
-    idx = ip[i]
-    yp.append(s[idx] + ord(pp[i]))
-Kp = 0
-for i in range(N):
-    num = yp[i]
-    numerator = 1
-    denominator = 1
-    for j in range(N):
-        if j == i:
-            continue
-        numerator *= j
-        denominator *= (i - j)
-    num *= numerator/denominator
-    Kp += num
+# for i in range(10):
+#     print(bcrypt.gensalt())
+#     print(bcrypt.checkpw(password_plain.encode(), enc))
 
-print(K + Kp)
+# secret = 25 & 0xFFFFFFFF #bcrypt.hashpw(password=password_plain.encode(encoding="utf-8"), salt=bcrypt.gensalt())[:4]
+# # print(secret)
+# # secret = int.from_bytes(secret)
+# N = 2
+# randoms = [int.from_bytes(secrets.token_bytes(4)) for _ in range(N-1)]
+
+# points = []
+# for i in range(1, len(password_plain) + 1):
+#     y = secret
+#     for j in range(1, len(randoms) + 1):
+#         y += (randoms[j-1] * pow(i, j)) & 0xFFFFFFFF
+#     points.append(y & 0xFFFFFFFF )
+# print("points: ", points)
+
+# values = []
+# for i in range(len(points)):
+#     values.append((points[i] - password_bytes[i]) & 0xFFFFFFFF)
+# assert(len(password_plain) == len(points) == len(values))
+# print("values: ", values)
+
+# pos = [1, 2]
+# inp = "ka"
+# inp_bytes = inp.encode(encoding="utf-8")
+# recpoints = [(values[pos[i]] + inp_bytes[i]) & 0xFFFFFFFF for i in range(N)]
+# print("recpoints: ", recpoints)
+
+
+# calc_secret = 0
+# for idx, i in enumerate(pos):
+#     numerator = 1
+#     denominator = 1
+#     for j in pos:
+#         if i == j:
+#             continue
+#         numerator *= j
+#         denominator *= (i - j)
+#     calc_secret += (points[idx] * numerator // denominator) 
+# print(calc_secret )
+# print(secret )

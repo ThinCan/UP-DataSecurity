@@ -15,19 +15,19 @@
 </head>
 <body>
     <script type="module" src="./index.js"></script>
-    <form method="post" x-data="{email: '', password: '', repeatpassword: ''}">
+    <form method="post" x-data="{email: '', password: '', repeatpassword: ''}" id="registerform">
         <h2>Please, register an account:</h2>
         <div>
             <label>Email: </label>
-            <input type="email" pattern=".+@.+\..+" x-model="email">
+            <input type="email" pattern=".+@.+\..+" x-model="email" id="registerform_email" required>
         </div>
         <div>
             <label>Password: </label>
-            <input type="password" x-model="password">
+            <input type="password" x-model="password" required minlength="8" maxlength="16" id="registerform_password">
         </div>
         <div>
             <label>Repeat password: </label>
-            <input type="password" x-model="repeatpassword">
+            <input type="password" x-model="repeatpassword" required minlength="8" maxlength="16" id="registerform_repeatpassword">
         </div>
         <button type="button" @click="$store.registerform_submit(email, password, repeatpassword)">Register</button>
         <div x-text="$store.registerform_validation.message" x-effect="$store.registerform_validate(email, password, repeatpassword)" :class="$store.registerform_validation.result ? 'green' : 'red' "> </div>

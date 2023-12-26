@@ -4,21 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login page</title>
+    <style>
+        .red {
+            color: rgb(202, 64, 64);
+        }
+    </style>
 </head>
 <body>
     <script src="./index.js" type="module"></script>
     <div>
-        <form method="post" x-data="{email: '', password: ''}">
+        <form method="post" x-data="{email: '', password: ''}" id="loginform">
             <h2>Please, log-in:</h2>
             <div>
                 <label>Email: </label>
-                <input type="email" pattern=".+@.+\..+" x-model="email">
+                <input type="email" pattern=".+@.+\..+" x-model="email" required>
             </div>
             <div>
                 <label>Password: </label>
-                <input type="password" x-model="password">
+                <input type="password" x-model="password" required>
             </div>
-            <button type="button" @click="$store.btn_loginform_submit(email, password)">Login</button>
+            <button type="button" @click="$store.loginform_submit(email, password)">Login</button>
+            <button type="button" @click="() => window.location.replace('https://localhost:1234/register.html')">Register</button>
+            <button type="button" @click="$store.btn_loginform_submit(email, password)">Forgot Password</button>
+            <div x-data x-text="$store.loginform_validation.message" :class="$store.loginform_validation.result ? '' : 'red'"></div>
         </form>
     </div> 
 </body>

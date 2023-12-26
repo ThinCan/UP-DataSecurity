@@ -49,9 +49,9 @@ http {
 		proxy_set_header X-Real_Ip $remote_addr;
 	}
 
-        error_page   500 502 503 504  /50x.html;
-        location = /50x.html {
-            root   html;
+	error_page 401 = @unauthorized;
+        location unauthorized {
+            return 301 https://localhost/40x.html;
         }
     }
 }
