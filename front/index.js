@@ -7,19 +7,22 @@ import Alpine from "alpinejs"
 //     return err
 // })
 
-Alpine.store("loginform_submit", (email, password) => {
-    axios.post("https://localhost/api/login", {email, password}, {
+Alpine.store("loginform_submit", (email) => {
+    let password = ""
+    for(const idx of Alpine.store("loginform_password_indices")) {
+        const e = document.getElementsByName("pindex" + (idx+1))[0]
+        password += e.value
+    }
+
+    axios.post("https://localhost/api/login", { email, password }, {
         withCredentials: true,
     }).then(res => {
-        console.dir(res)
-        console.log(res.data)
-        axios.get("https://localhost/api/jwt", {
-        withCredentials: true
-        }).then(e => {
-            console.log("ERROR", e)
-        })
-    }).catch(e => {
-        console.log("ERROR", e.response)
+        Alpine.store("loginform_validation", res.data)
+        if (res.status == 200) {
+            window.location.replace("https://localhost/main.html")
+        }
+    }).catch(err => {
+        Alpine.store("loginform_validation", err.response.data)
     })
 })
 
@@ -27,45 +30,60 @@ Alpine.store("btn_logout", () => {
     axios.get("https://localhost/api/logout", {
         withCredentials: true
     }).then(e => {
-        console.log(e.data)
-        if(e.status == 401) {
-            console.log("ee")
-            window.location.replace("https://localhost/40x.html")
+        if(e.status == 200) {
+            window.location.replace("https://localhost/login.html")
         }
     }).catch(e => {
-        console.log(e.response)
-        if(e.response.status == 401) {
-            console.log("ee")
-            window.location.replace("https://localhost/40x.html")
-        }
+        window.location.replace("https://localhost/login.html")
     })
 })
 
 Alpine.store("registerform_submit", (email, passwd, repeat_passwd) => {
     const form = document.getElementById("registerform")
-    if(form != null) {
-        if(!form.reportValidity()) { return }
+    if (form != null) {
+        if (!form.reportValidity()) { return }
     }
-    Alpine.store("registerform_validate")(email, passwd, repeat_passwd)
-})
-Alpine.store("registerform_validate", (email, passwd, repeat_passwd) => {
-    console.log(email, passwd, repeat_passwd)
     axios.post("https://localhost/api/register", {
         email, password: passwd, password_repeat: repeat_passwd
     }).then(res => {
-        if(res.status == 200) {
-            Alpine.store("registerform_validation", res.data)
+        Alpine.store("registerform_validation", res.data)
+        if (res.status == 200) {
             window.location.replace("https://localhost/login.html")
-        } else {
-            Alpine.store("registerform_validation", res.response.data)
         }
     }).catch(err => {
-        console.log("error: ", err)
+        Alpine.store("registerform_validation", err.response.data)
+    })
+})
+Alpine.store("registerform_validate", (email, passwd, repeat_passwd) => {
+    axios.post("https://localhost/api/register/validate", {
+        email, password: passwd, password_repeat: repeat_passwd
+    }).then(res => {
+        Alpine.store("registerform_validation", res.data)
+    }).catch(err => {
+        Alpine.store("registerform_validation", err.response.data)
     })
 
     return true;
 })
-Alpine.store("registerform_validation", {message: '', result: false})
-Alpine.store("loginform_validation", {message: '', result: false})
+Alpine.store("check_jwt", () => {
+    axios.get("https://localhost/api/jwt", {withCredentials: true}).then(res => {
+        if(res.status == 200) {
+            window.location.replace("https://localhost/main.html")
+        }
+    }).catch(err => {
+    })
+})
+Alpine.store("get_password_indices", (email) => {
+    axios.post("https://localhost/api/login/password_indices", {email}).then(res => {
+        if(res.status == 200) {
+            Alpine.store("loginform_password_indices", res.data.message.indices)
+        }
+    }).catch(err => {
+        Alpine.store("loginform_validation", err.response.data) 
+    })
+})
+Alpine.store("loginform_password_indices", [])
+Alpine.store("registerform_validation", { message: '', result: false })
+Alpine.store("loginform_validation", { message: '', result: false })
 
 Alpine.start()

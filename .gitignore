@@ -2,3 +2,4 @@ front/node_modules/*
 .git/*
 front/.parcel-cache/*
 /front/dist/*
+/back/.env

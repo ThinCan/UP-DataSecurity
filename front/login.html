@@ -8,24 +8,31 @@
         .red {
             color: rgb(202, 64, 64);
         }
+        input:disabled {
+            background-color: black;
+        }
     </style>
 </head>
 <body>
     <script src="./index.js" type="module"></script>
-    <div>
+    <div x-init="$store.check_jwt()">
         <form method="post" x-data="{email: '', password: ''}" id="loginform">
             <h2>Please, log-in:</h2>
             <div>
                 <label>Email: </label>
-                <input type="email" pattern=".+@.+\..+" x-model="email" required>
+                <input type="email" pattern=".+@.+\..+" x-model="email" @keydown="() => $store.loginform_password_indices = []" required>
             </div>
-            <div>
-                <label>Password: </label>
-                <input type="password" x-model="password" required>
-            </div>
-            <button type="button" @click="$store.loginform_submit(email, password)">Login</button>
-            <button type="button" @click="() => window.location.replace('https://localhost:1234/register.html')">Register</button>
+            <button type="button" @click="$store.get_password_indices(email)" x-text="'Login as: ' + email"></button>
+            <button type="button" @click="() => window.location.assign('https://localhost/register.html')">Register</button>
             <button type="button" @click="$store.btn_loginform_submit(email, password)">Forgot Password</button>
+            <div x-show="$store.loginform_password_indices.length > 0">
+                <label>Password: </label>
+                <template x-for="i in 16" x-effect="$store.loginform_password_indices">
+                    <input type="password" :name="'pindex'+i" :disabled="!$store.loginform_password_indices.includes(i-1)" required style="width: 15px;">
+                </template>
+                <br>
+                <button type="button" @click="$store.loginform_submit(email)">Login</button>
+            </div>
             <div x-data x-text="$store.loginform_validation.message" :class="$store.loginform_validation.result ? '' : 'red'"></div>
         </form>
     </div> 
