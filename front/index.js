@@ -82,6 +82,15 @@ Alpine.store("get_password_indices", (email) => {
         Alpine.store("loginform_validation", err.response.data) 
     })
 })
+Alpine.store("reset_password_indices_inputs", () => {
+    Alpine.store("loginform_password_indices", []);
+    for(let i=1; i<17; ++i) {
+        let e = document.getElementsByName("pindex" + i)[0]
+        if(e) {
+            e.value = ""
+        }
+    }
+})
 Alpine.store("loginform_password_indices", [])
 Alpine.store("registerform_validation", { message: '', result: false })
 Alpine.store("loginform_validation", { message: '', result: false })

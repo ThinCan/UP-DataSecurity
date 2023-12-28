@@ -20,7 +20,7 @@
             <h2>Please, log-in:</h2>
             <div>
                 <label>Email: </label>
-                <input type="email" pattern=".+@.+\..+" x-model="email" @keydown="() => $store.loginform_password_indices = []" required>
+                <input type="email" pattern=".+@.+\..+" x-model="email" @keydown="$store.reset_password_indices_inputs" required>
             </div>
             <button type="button" @click="$store.get_password_indices(email)" x-text="'Login as: ' + email"></button>
             <button type="button" @click="() => window.location.assign('https://localhost/register.html')">Register</button>
@@ -28,7 +28,7 @@
             <div x-show="$store.loginform_password_indices.length > 0">
                 <label>Password: </label>
                 <template x-for="i in 16" x-effect="$store.loginform_password_indices">
-                    <input type="password" :name="'pindex'+i" :disabled="!$store.loginform_password_indices.includes(i-1)" required style="width: 15px;">
+                    <input type="password" :name="'pindex'+i" :disabled="!$store.loginform_password_indices.includes(i-1)" maxlength="1" minlength="1" required style="width: 15px;">
                 </template>
                 <br>
                 <button type="button" @click="$store.loginform_submit(email)">Login</button>

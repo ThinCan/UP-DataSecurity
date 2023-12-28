@@ -88,10 +88,11 @@ def login():
         json_data = request.get_json()
         email = json_data["email"]
         password = json_data["password"]
+        password.replace(' ', '')
 
         if len(email) < 0:
             return server_response("Invalid username or password", False, 401)
-        if len(password) < 0:
+        if len(password) < 5:
             return server_response("Invalid username or password", False, 401)
         for l in password:
             if ord(l) > sss.MAX:
