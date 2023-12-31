@@ -5,9 +5,22 @@ services:
       context: ./back
     ports:
       - "8080:8080"
+    networks:
+      mynetwork:
+        ipv4_address: 172.20.0.2
   nginx:
     build:
       context: ./nginx2
     ports:
       - "80:80"
       - "443:443"
+    networks:
+      mynetwork:
+        ipv4_address: 172.20.0.3
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24

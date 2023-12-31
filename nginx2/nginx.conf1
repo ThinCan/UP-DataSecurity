@@ -25,7 +25,7 @@ http {
 	ssl_certificate_key /etc/key.key;
 
 	location /api/ {
-		proxy_pass http://192.168.1.31:8080;
+		proxy_pass http://172.20.0.2:8080;
 		proxy_set_header Host $host;
 		proxy_set_header X-Real_Ip $remote_addr;
 	}
