@@ -24,7 +24,7 @@
             </div>
             <button type="button" @click="$store.get_password_indices(email)" x-text="'Login as: ' + email"></button>
             <button type="button" @click="() => window.location.assign('https://localhost/register.html')">Register</button>
-            <button type="button" @click="$store.btn_loginform_submit(email, password)">Forgot Password</button>
+            <button type="button" @click="$store.loginform_change_password(email)">Forgot Password</button>
             <div x-show="$store.loginform_password_indices.length > 0">
                 <label>Password: </label>
                 <template x-for="i in 16" x-effect="$store.loginform_password_indices">
@@ -34,6 +34,7 @@
                 <button type="button" @click="$store.loginform_submit(email)">Login</button>
             </div>
             <div x-data x-text="$store.loginform_validation.message" :class="$store.loginform_validation.result ? '' : 'red'"></div>
+            <div x-text="'You have ' + $store.login_logintries + ' out of 5 tries before you will be locked out for 5 minutes'" x-init="$store.login_gettries()" x-effect="$store.login_logintries"></div>
         </form>
     </div> 
 </body>

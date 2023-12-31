@@ -1,13 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-</head>
-<body>
-    <script type="module" src="./index.js"></script> 
 
-    <button x-data @click="$store.btn_logout()">Logout</button> 
+    <style>
+        form input {
+            min-width: 300px;
+        }
+
+        .green {
+            color: rgb(112, 187, 0)
+        }
+
+        .red {
+            color: rgb(202, 64, 64);
+        }
+
+        .response {
+            font-size: 18px;
+        }
+
+        table {
+            width: 716px;
+            /* 140px * 5 column + 16px scrollbar width */
+            border-spacing: 0;
+        }
+
+        tbody,
+        thead tr {
+            display: block;
+        }
+
+        tbody {
+            height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        tbody td,
+        thead th {
+            width: 140px;
+            text-align: center;
+        }
+
+        thead th:last-child {
+            width: 156px;
+            /* 140px + 16px scrollbar width */
+        }
+    </style>
+</head>
+
+<body x-init="() => {$store.check_jwt(); $store.transfer_getaccount(); $store.transfer_gethistory() }">
+    <script type="module" src="./index.js"></script>
+
+    <div style="font-size: 20px;">
+        <button x-data @click="$store.btn_logout()">Logout</button>
+    </div>
+    <hr>
+    <form x-data="{to:0, amount:'', title:'', address:''}">
+        <h2>Transfer money</h2>
+        <label for="to">Recipient's account number:</label> <input name="to" type="text" x-model="to"> <br>
+        <label for="amount">Amount to transfer (PLN):</label> <input name="amount" type="text" x-model="amount"> <br>
+        <small>Use "," or "." to specify fractional part</small>
+        <br>
+        <label for="title">Transfer's title:</label> <input name="title" type="text" x-model="title"> <br>
+        <div>
+            <label for="address">Address:</label> <br> <textarea name="address" rows="4" cols="80" x-model="address"> <br>
+        </div>
+        <br>
+        <button type="button" style="font-size: 18;" @click="$store.transferform_transfer(to, amount, title, address)">Make transfer</button>
+        <br>
+        <span class="response" :class="$store.transferform_validation.result ? 'green' : 'red'" x-data x-text="$store.transferform_validation.message"></span>
+    </form>
+    <hr>
+    <div>
+        <h2>Your account</h2>
+        <div x-data = '{show_account: false, show_balance: false}' x-init="$store.transfer_getbalance">
+            <span>Balance</span>
+            <button @click="show_balance = !show_balance" x-text="show_balance ? 'Hide' : 'Show'"></button>
+            <span>PLN</span>
+            <span x-text="show_balance ? $store.transfer_balance : ''"></span>
+            <br>
+            <span>Account number</span>
+            <button @click="show_account = !show_account" x-text="show_account ? 'Hide' : 'Show'"></button>
+            <span x-text="show_account ? $store.transfer_account : ''"></span>
+        </div>
+    </div>
+    <hr>
+    <div x-data>
+        <h2>Your money transfers</h2>
+        <table>
+            <thead>
+                <th>Title</th>
+                <th>Sender</th>
+                <th>Recipient</th>
+                <th>Amount</th>
+                <th>Address</th>
+            </thead>
+            <tbody>
+                <template x-for="i in $store.transfer_history" x-effect="$store.transfer_history">
+                    <tr>
+                        <td x-text="i[3]"></td>
+                        <td x-text="i[0]"></td>
+                        <td x-text="i[1]"></td>
+                        <td x-text="i[2]"></td>
+                        <td x-text="i[4]"></td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
 </body>
+
 </html>

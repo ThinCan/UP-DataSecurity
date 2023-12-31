@@ -8,12 +8,12 @@ G2 = galois.GF(MAX)
 def reconstruct_secret(letters, y):
     sums = G2([0])
     for j, letter_j in enumerate(letters):
-        letter_j_value, share = G2([int.from_bytes(letter_j[1])]), G2([y[letter_j[0]]])
+        letter_j_value, share = G2([int.from_bytes(letter_j[1], "big")]), G2([y[letter_j[0]]])
  
         numerator = G2([1])
         denominator = G2([1])
         for i, letter_i in enumerate(letters):
-            xi = G2([int.from_bytes(letter_i[1])])
+            xi = G2([int.from_bytes(letter_i[1], "big")])
             if i != j and xi != letter_j_value:
                 numerator *= xi
                 denominator *= xi - letter_j_value
@@ -24,7 +24,7 @@ def reconstruct_secret(letters, y):
 
 # password: bytes, letters: int, secret: int
 def generate_shares(password, letters_to_guess, secret):
-    coefficients = [G2(int.from_bytes(random.randbytes(4))) for _ in range(letters_to_guess - 1)]
+    coefficients = [G2(int.from_bytes(random.randbytes(4), "big")) for _ in range(letters_to_guess - 1)]
     coefficients.append(G2([secret]))
 
     shares = []

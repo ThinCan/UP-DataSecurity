@@ -19,7 +19,7 @@ http {
     server {
         listen 443 ssl;
 	root   /usr/share/nginx/html;
-	index  index.html;
+	index  login.html;
 	ssl_password_file /etc/global.pass;
 	ssl_certificate /etc/cert.crt;
 	ssl_certificate_key /etc/key.key;
