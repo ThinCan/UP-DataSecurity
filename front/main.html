@@ -53,7 +53,7 @@
     </style>
 </head>
 
-<body x-init="() => {$store.check_jwt(); $store.transfer_getaccount(); $store.transfer_gethistory() }">
+<body x-init="() => {$store.check_jwt(); $store.transfer_getaccount(); $store.transfer_gethistory(); $store.transfer_getnames(); }">
     <script type="module" src="./index.js"></script>
 
     <div style="font-size: 20px;">
@@ -78,7 +78,7 @@
     <hr>
     <div>
         <h2>Your account</h2>
-        <div x-data = '{show_account: false, show_balance: false}' x-init="$store.transfer_getbalance">
+        <div x-data = '{show_account: false, show_balance: false, show_names: false}' x-init="$store.transfer_getbalance">
             <span>Balance</span>
             <button @click="show_balance = !show_balance" x-text="show_balance ? 'Hide' : 'Show'"></button>
             <span>PLN</span>
@@ -87,6 +87,10 @@
             <span>Account number</span>
             <button @click="show_account = !show_account" x-text="show_account ? 'Hide' : 'Show'"></button>
             <span x-text="show_account ? $store.transfer_account : ''"></span>
+            <br>
+            <span>Name and lastname</span>
+            <button @click="show_names = !show_names" x-text="show_names ? 'Hide' : 'Show'"></button>
+            <span x-text="show_names ? $store.transfer_names : ''"></span>
         </div>
     </div>
     <hr>
@@ -104,9 +108,9 @@
                 <template x-for="i in $store.transfer_history" x-effect="$store.transfer_history">
                     <tr>
                         <td x-text="i[3]"></td>
-                        <td x-text="i[0]"></td>
-                        <td x-text="i[1]"></td>
-                        <td x-text="i[2]"></td>
+                        <td x-text="i[0] == $store.transfer_account ? 'You' : i[0]"></td>
+                        <td x-text="i[1] == $store.transfer_account ? 'You' : i[1]"></td>
+                        <td x-text="i[0] == $store.transfer_account ? '-'+i[2] : i[2]"></td>
                         <td x-text="i[4]"></td>
                     </tr>
                 </template>

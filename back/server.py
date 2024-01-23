@@ -6,6 +6,8 @@ from waitress import serve
 from flask_jwt_extended import get_jwt_identity, jwt_required, JWTManager, create_access_token, set_access_cookies, get_jwt
 from datetime import timedelta
 from password_strength import PasswordPolicy
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 import time
 import hashlib
 import sss
@@ -236,6 +238,8 @@ def register_validate():
         email = json["email"].lower()
         passwd = json["password"]
         passwdr = json["password_repeat"]
+        name = json["name"]
+        lastname = json["last_name"]
 
         if(len(email) == 0):
             return server_response("Email cannot be that short", False, 401)
@@ -243,6 +247,14 @@ def register_validate():
             return server_response("Email cannot be that long", False, 401)
         if(email.find("@") == -1 or email.find(".") == -1):
             return server_response("Email must have valid format with '@' and '.'", False, 401)
+        if(len(name) == 0):
+            return server_response("Name cannot be empty", False, 401)
+        if(len(name) > 64):
+            return server_response("Name cannot be that long", False, 401)
+        if(len(lastname) == 0):
+            return server_response("Last name cannot be empty", False, 401)
+        if(len(lastname) > 64):
+            return server_response("Last name cannot be that long", False, 401)
         
         email_already_exists = make_db_call(one="SELECT COUNT(*) FROM users WHERE email == ?", args = (email,), fetchone=1)[0] > 0
         if(email_already_exists):
@@ -268,6 +280,8 @@ def register(override_credentials = None):
         email = json["email"].lower()
         passwd = json["password"]
         passwdr = json["password_repeat"]
+        name = json["name"]
+        lastname = json["last_name"]
 
         if(len(email) == 0):
             return server_response("Email cannot be that short", False, 401)
@@ -275,6 +289,14 @@ def register(override_credentials = None):
             return server_response("Email cannot be that long", False, 401)
         if(email.find("@") == -1 or email.find(".") == -1):
             return server_response("Email must have valid format with '@' and '.'", False, 401)
+        if(len(name) == 0):
+            return server_response("Name cannot be empty", False, 401)
+        if(len(name) > 64):
+            return server_response("Name cannot be that long", False, 401)
+        if(len(lastname) == 0):
+            return server_response("Last name cannot be empty", False, 401)
+        if(len(lastname) > 64):
+            return server_response("Last name cannot be that long", False, 401)
 
         result = validate_password(passwd, passwdr)
         if result[1] == 200 or override_credentials is not None:
@@ -293,15 +315,26 @@ def encrypt_user_password(passwd):
     sh_str += int.to_bytes(secret, 4, "big")
     return sh_str
 
-def register_user_in_database(email, passwd):
+def register_user_in_database(email, passwd, name, lastname):
     sh_str = encrypt_user_password(passwd)
-    account_number = random.randint(1e7, 1e8-1)
+    aes = AES.new(os.getenv("AES_SECRET").encode(), AES.MODE_ECB)
+    account_number = aes.encrypt(pad(str(random.randint(1e7, 1e8-1)).encode(), 16))
     while True:
         user_count = make_db_call(one="SELECT COUNT(*) FROM users WHERE account_number = ?", args=(account_number,), fetchone=1)[0]
         if user_count == 0:
             break
-        account_number = random.randint(1e7, 1e8-1)
-    make_db_call(one="INSERT INTO users (email, password, account_number) VALUES(?,?,?)", args=(email, sh_str, account_number))
+        account_number = aes.encrypt(pad(str(random.randint(1e7, 1e8-1)).encode(), 16))
+
+    enc_name = aes.encrypt(pad(name.encode(), 16))
+    enc_lastname = aes.encrypt(pad(lastname.encode(), 16))
+    enc_bal = aes.encrypt(pad(str(1000.0).encode(), 16))
+
+    make_db_call(one="INSERT INTO users (email, password, account_number, name, lastname, balance) VALUES(?,?,?,?,?,?)", args=(email, sh_str, account_number, enc_name, enc_lastname, enc_bal))
+
+def ecb_dec(bytes):
+    return unpad(AES.new(os.getenv("AES_SECRET").encode(), AES.MODE_ECB).decrypt(bytes), 16).decode()
+def ecb_enc(bytes):
+    return AES.new(os.getenv("AES_SECRET").encode(), AES.MODE_ECB).encrypt(pad(bytes, 16))
 
 @app.post("/api/transfer/make")
 @jwt_required(locations=["cookies", "headers"])
@@ -313,17 +346,28 @@ def make_transfer():
         title = data["title"]
         address = data["address"]
 
-        recipient = make_db_call(one="SELECT email, account_number, balance FROM users WHERE account_number = ?", args=(to,), fetchone=1)
+        recipient = make_db_call(one="SELECT email, account_number, balance FROM users", fetchall=1)
+        recipient_account = ""
+
+        for r in recipient:
+            acc = ecb_dec(r[1])
+            if acc == to:
+                recipient = r
+                recipient_account = acc
+                break
+            else:
+                recipient = None
+
         if recipient is None:
             return server_response("Invalid account number", False, 401)
         
         recipient_email = recipient[0]
-        recipient_account = recipient[1]
-        recipient_balance = recipient[2]
+        # recipient_account = recipient_account
+        recipient_balance = float(ecb_dec(recipient[2]))
         sender_email = get_jwt_identity()
         sender = make_db_call(one="SELECT account_number,balance FROM users WHERE email = ?", args=(sender_email,), fetchone=1)
-        sender_account = sender[0]
-        sender_balance = sender[1]
+        sender_account = ecb_dec(sender[0])
+        sender_balance = float(ecb_dec(sender[1]))
         print(to, amount, title, address)
         print("EMAIL: ", sender_email)
 
@@ -343,8 +387,8 @@ def make_transfer():
         if sender_balance < amount:
             return server_response("You cannot transfer more than you have", False, 401)
         
-        make_db_call(one="UPDATE users SET balance = ? WHERE email = ?", args=(recipient_balance+amount, recipient_email))
-        make_db_call(one="UPDATE users SET balance = ? WHERE email = ?", args=(sender_balance-amount, sender_email))
+        make_db_call(one="UPDATE users SET balance = ? WHERE email = ?", args=(ecb_enc(str(recipient_balance+amount).encode()), recipient_email))
+        make_db_call(one="UPDATE users SET balance = ? WHERE email = ?", args=(ecb_enc(str(sender_balance-amount).encode()), sender_email))
         make_db_call(one="INSERT INTO transfers VALUES (?, ?, ?, ?, ?)", args=(
             sender_account, recipient_account, amount, title, address
         ))
@@ -360,6 +404,7 @@ def get_balance():
     try:
         email = get_jwt_identity()
         balance = make_db_call(one="SELECT balance FROM users WHERE email = ?", args=(email,), fetchone=1)[0]
+        balance = unpad(AES.new(os.getenv("AES_SECRET").encode(), AES.MODE_ECB).decrypt(balance), 16).decode()
         return server_response({'balance':balance}, True, 200)
     except Exception as err:
         print(err)
@@ -370,7 +415,7 @@ def get_balance():
 def get_transfers():
     try:
         email = get_jwt_identity()
-        account = make_db_call(one="SELECT account_number FROM users WHERE email = ?", args=(email, ), fetchone=1)[0]
+        account = ecb_dec(make_db_call(one="SELECT account_number FROM users WHERE email = ?", args=(email, ), fetchone=1)[0])
         history = make_db_call(one="SELECT * FROM transfers WHERE from_account = ? OR to_account = ?", args=(account, account), fetchall=1)
         return server_response({'history':history}, True, 200)
     except Exception as err:
@@ -383,7 +428,21 @@ def get_account_number():
     try:
         email = get_jwt_identity()
         account = make_db_call(one="SELECT account_number FROM users WHERE email = ?", args=(email,), fetchone=1)[0]
+        account = unpad(AES.new(os.getenv("AES_SECRET").encode(), AES.MODE_ECB).decrypt(account), 16).decode()
         return server_response({'account':account}, True, 200)
+    except Exception as err:
+        print(err)
+        return server_response("Internal error", False, 500)
+
+@app.get("/api/names")
+@jwt_required(locations=['cookies'])
+def get_names():
+    try:
+        email = get_jwt_identity()
+        account = make_db_call(one="SELECT name, lastname FROM users WHERE email = ?", args=(email,), fetchone=1)
+        name = ecb_dec(account[0])
+        lastname = ecb_dec(account[1])
+        return server_response({'names':(name + " " + lastname)}, True, 200)
     except Exception as err:
         print(err)
         return server_response("Internal error", False, 500)
@@ -406,6 +465,7 @@ def change_password():
             result = validate_password(passwd, passwdr)
             if result[1] == 200:
                 encrypted = encrypt_user_password(passwd)
+                make_db_call(one="DELETE FROM password_change_requests WHERE email=?", args=(email, ))
                 make_db_call(one="UPDATE users SET password=? WHERE email=?", args=(encrypted, email))
             return result
         elif "email" in data:
@@ -449,8 +509,10 @@ if __name__ == "__main__":
     CREATE TABLE IF NOT EXISTS users(
         email TEXT UNIQUE NOT NULL, 
         password TEXT UNIQUE NOT NULL,
-        account_number TEXT UNIQUE NOT NULL,
-        balance REAL DEFAULT 1000.0
+        name BLOB NOT NULL,
+        lastname BLOB NOT NULL,
+        account_number BLOB UNIQUE NOT NULL,
+        balance BLOB NOT NULL
     )
     """)
     make_db_call(one = """
@@ -492,8 +554,8 @@ if __name__ == "__main__":
     )
     """)
 
-    register_user_in_database("admin", "admin")
-    register_user_in_database("karol", "karol")
+    register_user_in_database("admin", "admin", "a", "b")
+    register_user_in_database("karol", "karol", "kar", "kub")
 
     if make_db_call(one="SELECT COUNT(*) FROM bruteforce_passwords", fetchone=1)[0] == 0:
         file = open("passwords.txt", 'r')

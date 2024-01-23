@@ -40,14 +40,15 @@ Alpine.store("btn_logout", () => {
     })
 })
 
-Alpine.store("registerform_submit", (email, passwd, repeat_passwd) => {
+Alpine.store("registerform_submit", (email, passwd, repeat_passwd, name, last_name) => {
     const form = document.getElementById("registerform")
     if (form != null) {
         if (!form.reportValidity()) { return }
     }
     axios.post("https://localhost/api/register", {
-        email, password: passwd, password_repeat: repeat_passwd
+        email, password: passwd, password_repeat: repeat_passwd, name, last_name
     }).then(res => {
+        console.log(name)
         Alpine.store("registerform_validation", res.data)
         if (res.status == 200) {
             window.location.replace("https://localhost/login.html")
@@ -56,9 +57,9 @@ Alpine.store("registerform_submit", (email, passwd, repeat_passwd) => {
         Alpine.store("registerform_validation", err.response.data)
     })
 })
-Alpine.store("registerform_validate", (email, passwd, repeat_passwd) => {
+Alpine.store("registerform_validate", (email, passwd, repeat_passwd, name, last_name) => {
     axios.post("https://localhost/api/register/validate", {
-        email, password: passwd, password_repeat: repeat_passwd
+        email, password: passwd, password_repeat: repeat_passwd, name, last_name
     }).then(res => {
         Alpine.store("registerform_validation", res.data)
     }).catch(err => {
@@ -108,7 +109,6 @@ Alpine.store("transferform_transfer", (to, amount, title, address) => {
             Alpine.store("transfer_gethistory")()
         }
     }).catch(err => {
-        console.log(err.response.data)
         Alpine.store("transferform_validation", err.response.data)
     })
 })
@@ -117,14 +117,24 @@ Alpine.store("transfer_getbalance", () => {
     axios.get("https://localhost/api/transfer/balance", { withCredentials: true })
         .then(res => {
             if (res.status == 200) {
-                console.log("ASD")
                 Alpine.store("transfer_balance", res.data.message.balance)
             }
         }).catch(err => {
             if (err.status == 401) {
                 let message = err.response.data.msg + ". Try loggin in again"
-                console.log(message)
                 Alpine.store("transferform_validation", { message, result: false })
+            }
+        })
+})
+
+Alpine.store("transfer_getnames", () => {
+    axios.get("https://localhost/api/names", { withCredentials: true })
+        .then(res => {
+            if (res.status == 200) {
+                Alpine.store("transfer_names", res.data.message.names)
+            }
+        }).catch(err => {
+            if (err.status == 401) {
             }
         })
 })
