@@ -340,6 +340,7 @@ def ecb_enc(bytes):
 @jwt_required(locations=["cookies", "headers"])
 def make_transfer():
     try:
+        time.sleep(1.0)
         data = request.get_json()
         to = data["to"]
         amount = data["amount"]
@@ -499,6 +500,8 @@ if __name__ == "__main__":
     # make_db_call(one = "DROP TABLE IF EXISTS user_password_indices")
     # make_db_call(one = "DROP TABLE IF EXISTS bad_logins")
     # make_db_call(one = "DROP TABLE IF EXISTS password_change_requests")
+    make_db_call(one="delete from users where email='admin'")
+    make_db_call(one = "DROP TABLE IF EXISTS user_password_indices")
 
     make_db_call(one = """
     CREATE TABLE IF NOT EXISTS revoked_jwt(
