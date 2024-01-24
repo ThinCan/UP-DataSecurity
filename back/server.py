@@ -300,7 +300,7 @@ def register(override_credentials = None):
 
         result = validate_password(passwd, passwdr)
         if result[1] == 200 or override_credentials is not None:
-            register_user_in_database(email, passwd)
+            register_user_in_database(email, passwd, name, lastname)
         return result
     except Exception as err:
         print(err)
